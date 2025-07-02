@@ -1,0 +1,65 @@
+name: nine_aki_bro_app
+description: "A new Flutter project."
+publish_to: 'none'
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+
+dependencies:
+  dio: ^5.8.0+1
+  lottie: 3.1.3
+  intl: ^0.20.2
+  smooth_page_indicator: ^1.2.1
+  iconsax: ^0.0.8
+  bloc: ^9.0.0
+  google_fonts: 6.2.0
+  flutter_bloc: ^9.1.0
+  equatable: ^2.0.7
+  supabase_flutter: ^2.8.4
+  google_nav_bar: ^5.0.7
+  url_launcher: 6.3.0
+  flutter_rating_bar: ^4.0.1
+  carousel_slider: ^5.0.0
+  readmore: ^3.0.0
+  google_sign_in: 6.2.1
+  email_validator: ^3.0.0
+
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  shared_preferences: ^2.5.3
+  easy_localization: ^3.0.7+1
+  cached_network_image: ^3.4.1
+  clarity_flutter: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/logos/
+    - assets/images/animations/
+    - assets/images/onboarding/
+    - assets/translation/
+
+  fonts:
+    - family: Playfair Display
+      fonts:
+        - asset: assets/fonts/Playfair_Display/static/PlayfairDisplay-Regular.ttf
+    - family: Zain
+      fonts:
+        - asset: assets/fonts/Zain/Zain-LightItalic.ttf
+
+

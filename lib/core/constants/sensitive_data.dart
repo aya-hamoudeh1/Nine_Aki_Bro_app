@@ -1,0 +1,2 @@
+const String anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvdWtieGhsaXN5Z2NjemFuZWl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMzEzOTcsImV4cCI6MjA1OTgwNzM5N30.9sN8CPKcwBcJW5KaJSDfBS8FkImIwD1jTntexbHJrqo';
+const String supabaseUrl = "https://roukbxhlisygcczaneiw.supabase.co";
