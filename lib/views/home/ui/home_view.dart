@@ -18,7 +18,7 @@ import '../../../core/constants/sizes.dart';
 import '../../all_products/all_products.dart';
 import '../../cart/ui/cart.dart';
 import '../../cart/logic/cubit/cart_cubit/cart_cubit.dart';
-import '../logic/home_cubit/home_cubit.dart';
+import '../logic/cubit/home_cubit.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -30,34 +30,12 @@ class HomeView extends StatelessWidget {
       backgroundColor: dark ? TColors.dark : TColors.light,
       body: BlocConsumer<HomeCubit, HomeState>(
         listener: (context, state) {
-          if (state is AddToCartSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: TColors.primary,
-                content: Text(
-                  LocaleKeys.product_added_to_cart.tr(),
-                  style: TextStyle(color: TColors.white),
-                ),
-                action: SnackBarAction(
-                  label: LocaleKeys.go_to_cart.tr(),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CartScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            );
-          }
+          // Listener can be kept for other state changes if needed
         },
         builder: (context, state) {
           final homeCubit = context.read<HomeCubit>();
           return RefreshIndicator(
             onRefresh: () async {
-              await homeCubit.getCategories();
               await homeCubit.getProducts();
             },
             child: SingleChildScrollView(
@@ -69,12 +47,8 @@ class HomeView extends StatelessWidget {
                     child: Column(
                       children: [
                         const SizedBox(height: TSizes.spaceBtwItems),
-
-                        /// Appbar
                         const THomeAppBar(),
                         const SizedBox(height: TSizes.spaceBtwSections),
-
-                        /// Searchbar
                         TSearchContainer(
                           onTap: () {
                             Navigator.push(
@@ -89,23 +63,18 @@ class HomeView extends StatelessWidget {
                           enableTextField: false,
                         ),
                         const SizedBox(height: TSizes.spaceBtwSections),
-
-                        /// Categories
                         Padding(
-                          padding: EdgeInsetsDirectional.only(
+                          padding: const EdgeInsetsDirectional.only(
                             start: TSizes.defaultSpace,
                           ),
                           child: Column(
                             children: [
-                              /// Heading
                               TSectionHeading(
                                 title: LocaleKeys.popular_categories.tr(),
                                 showActionButton: false,
                                 textColor: TColors.white,
                               ),
                               const SizedBox(height: TSizes.spaceBtwItems),
-
-                              /// Categories
                               THomeCategories(
                                 categories:
                                     state is GetDataSuccess
@@ -125,7 +94,6 @@ class HomeView extends StatelessWidget {
                     padding: const EdgeInsets.all(TSizes.defaultSpace),
                     child: Column(
                       children: [
-                        /// Promo Slider
                         const TPromoSlider(
                           banners: [
                             "assets/images/t-shirt.png",
@@ -137,8 +105,6 @@ class HomeView extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: TSizes.spaceBtwSections),
-
-                        /// Heading
                         TSectionHeading(
                           title: LocaleKeys.popular_product.tr(),
                           onPressed: () {
@@ -148,17 +114,15 @@ class HomeView extends StatelessWidget {
                                 builder:
                                     (_) => BlocProvider.value(
                                       value: homeCubit,
-                                      child: AllProducts(),
+                                      child: const AllProducts(),
                                     ),
                               ),
                             );
                           },
                         ),
                         const SizedBox(height: TSizes.spaceBtwItems),
-
-                        /// Popular Products
                         if (state is GetDataLoading || state is HomeInitial)
-                          LoadingWidget()
+                          const LoadingWidget()
                         else if (state is GetDataSuccess)
                           TGridLayout(
                             itemCount: state.products.length,
@@ -170,9 +134,6 @@ class HomeView extends StatelessWidget {
                               return TProductCardVertical(
                                 isFavorite: isFavorite,
                                 onPressed: () {
-                                  bool isFavorite = homeCubit.checkIsFavorite(
-                                    product.productId!,
-                                  );
                                   isFavorite
                                       ? homeCubit.removeFromFavorite(
                                         product.productId!,
@@ -183,34 +144,53 @@ class HomeView extends StatelessWidget {
                                 },
                                 productModel: product,
                                 onAddToCart: () {
-                                  context.read<CartCubit>().addToCart(product);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      backgroundColor: TColors.primary,
-                                      content: Text(
-                                        LocaleKeys.item_added_to_cart.tr(),
-                                        style: TextStyle(
-                                          color: TColors.white,
-                                          fontWeight: FontWeight.w400,
+                                  // --- **[THE FIX IS HERE]** ---
+                                  // Check if the product has variants before adding to cart
+                                  if (product.variants.isNotEmpty) {
+                                    // Add the first available variant to the cart
+                                    context.read<CartCubit>().addToCart(
+                                      product,
+                                      product.variants.first,
+                                    );
+
+                                    // Show a confirmation message
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        backgroundColor: TColors.primary,
+                                        content: Text(
+                                          LocaleKeys.item_added_to_cart.tr(),
+                                          style: const TextStyle(
+                                            color: TColors.white,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                        action: SnackBarAction(
+                                          label: LocaleKeys.go_to_cart.tr(),
+                                          textColor: TColors.primary,
+                                          backgroundColor: TColors.white,
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (_) => const CartScreen(),
+                                              ),
+                                            );
+                                          },
                                         ),
                                       ),
-                                      action: SnackBarAction(
-                                        label:
-                                            LocaleKeys.item_added_to_cart.tr(),
-                                        textColor: TColors.primary,
-                                        backgroundColor: TColors.white,
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (_) => const CartScreen(),
-                                            ),
-                                          );
-                                        },
+                                    );
+                                  } else {
+                                    // Optional: Show a message if a product has no variants and can't be added
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "This product has no available options to add.",
+                                        ),
+                                        backgroundColor: Colors.orange,
                                       ),
-                                    ),
-                                  );
+                                    );
+                                  }
                                 },
                               );
                             },

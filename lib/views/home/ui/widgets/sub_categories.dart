@@ -6,7 +6,7 @@ import '../../../../core/widgets/images/t_rounded_image.dart';
 import '../../../../core/widgets/products/product_cards/product_card_horizontal.dart';
 import '../../../../core/widgets/texts/section_heading.dart';
 import '../../../../core/constants/sizes.dart';
-import '../../logic/home_cubit/home_cubit.dart';
+import '../../logic/cubit/home_cubit.dart';
 
 class SubCategoriesScreen extends StatefulWidget {
   const SubCategoriesScreen({super.key, required this.category});
@@ -43,6 +43,7 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
                 width: double.infinity,
                 imageUrl: widget.category.imgUrl,
                 applyImageRadius: true,
+                 isNetworkImage: true,
               ),
               const SizedBox(height: TSizes.spaceBtwSections),
 

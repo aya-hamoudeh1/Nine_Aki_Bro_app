@@ -34,7 +34,17 @@ class TProductCardVertical extends StatelessWidget {
     final dark = THelperFunction.isDarkMode(context);
     final textDirection = Directionality.of(context);
 
-    /// Container with side paddings, color, edges, radius and shadow
+    final String? displayImageUrl =
+        productModel.imageUrl ??
+        (productModel.variants.isNotEmpty
+            ? productModel.variants.first.imageUrl
+            : null);
+
+    final String displayPrice =
+        productModel.variants.isNotEmpty
+            ? productModel.variants.first.price.toStringAsFixed(2)
+            : productModel.price ?? '0';
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -56,23 +66,19 @@ class TProductCardVertical extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            /// Thumbnail, Wishlist Button, Discount Tag
             TRoundedContainer(
               height: 180,
               padding: const EdgeInsets.all(TSizes.sm),
               backgroundColor: dark ? TColors.dark : TColors.light,
               child: Stack(
                 children: [
-                  /// Thumbnail Image
                   TRoundedImage(
                     width: double.infinity,
                     imageUrl:
-                        productModel.imageUrl ?? "assets/images/shoes.png",
+                        displayImageUrl, // It now correctly passes a String?
                     applyImageRadius: true,
                     isNetworkImage: true,
                   ),
-
-                  /// Sale Tag
                   Positioned.directional(
                     textDirection: textDirection,
                     top: 12,
@@ -93,8 +99,6 @@ class TProductCardVertical extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  /// Favourite Icon Button
                   Positioned.directional(
                     textDirection: textDirection,
                     top: 0,
@@ -109,8 +113,6 @@ class TProductCardVertical extends StatelessWidget {
               ),
             ),
             const SizedBox(height: TSizes.spaceBtwItems / 2),
-
-            /// -- Details
             Padding(
               padding: const EdgeInsetsDirectional.only(start: TSizes.sm),
               child: Column(
@@ -129,20 +131,14 @@ class TProductCardVertical extends StatelessWidget {
                 ],
               ),
             ),
-
             const Spacer(),
-
-            /// Price Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                /// Price
                 Padding(
                   padding: const EdgeInsetsDirectional.only(start: TSizes.sm),
-                  child: TProductPriceText(price: '${productModel.price}'),
+                  child: TProductPriceText(price: displayPrice),
                 ),
-
-                /// Add to Cart Button
                 GestureDetector(
                   onTap: onAddToCart,
                   child: Container(

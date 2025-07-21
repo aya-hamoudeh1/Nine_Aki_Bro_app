@@ -8,26 +8,60 @@ import 'package:nine_aki_bro_app/views/product_details/ui/widgets/product_detail
 import 'package:nine_aki_bro_app/views/product_details/ui/widgets/product_meta_data.dart';
 import 'package:nine_aki_bro_app/views/product_details/ui/widgets/rating_share_widget.dart';
 import 'package:readmore/readmore.dart';
-import '../../../core/models/product_model.dart';
-import '../../../core/widgets/texts/section_heading.dart';
-import '../../../core/constants/sizes.dart';
+import '../../../../core/models/product_model.dart';
+import '../../../../core/models/product_variants_model.dart';
+import '../../../../core/widgets/texts/section_heading.dart';
+import '../../../../core/constants/sizes.dart';
 import '../../product_reviews/ui/product_reviews.dart';
 
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key, required this.productModel});
   final ProductModel productModel;
 
   @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  ProductVariantModel? selectedVariant;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.productModel.variants.isNotEmpty) {
+      setState(() {
+        selectedVariant = widget.productModel.variants.first;
+      });
+    }
+  }
+
+  void onVariantSelected(ProductVariantModel variant) {
+    setState(() {
+      selectedVariant = variant;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: const TBottomAddToCart(),
+      bottomNavigationBar: TBottomAddToCart(
+        product: widget.productModel,
+        selectedVariant: selectedVariant,
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            /// Product Image Slider
-            const TProductImageSlider(),
+            /// 1. Product Image Slider
+            TProductImageSlider(
+              product: widget.productModel,
+              selectedImageUrl:
+                  selectedVariant?.imageUrl ??
+                  widget.productModel.imageUrl ??
+                  '',
+              onVariantSelected: onVariantSelected,
+            ),
 
-            /// Product Details
+            /// 2. Product Details
             Padding(
               padding: const EdgeInsets.only(
                 right: TSizes.defaultSpace,
@@ -37,13 +71,19 @@ class ProductDetailScreen extends StatelessWidget {
               child: Column(
                 children: [
                   /// Rating & Share
-                  TRatingAndShare(productModel: productModel),
+                  TRatingAndShare(productModel: widget.productModel),
 
                   /// Price, Title, Stock, Brand
-                  const TProductMetaData(),
+                  TProductMetaData(
+                    product: widget.productModel,
+                    selectedVariant: selectedVariant,
+                  ),
 
-                  /// Attributes
-                  const TProductAttributes(),
+                  /// Attributes (Color & Size selectors)
+                  TProductAttributes(
+                    product: widget.productModel,
+                    onVariantSelected: onVariantSelected,
+                  ),
                   const SizedBox(height: TSizes.spaceBtwSections),
 
                   /// Checkout Button
@@ -63,16 +103,17 @@ class ProductDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: TSizes.spaceBtwItems),
                   ReadMoreText(
-                    LocaleKeys.product_description.tr(),
+                    widget.productModel.description ??
+                        "No description available.",
                     trimLines: 2,
                     trimMode: TrimMode.Line,
                     trimCollapsedText: LocaleKeys.show_more.tr(),
                     trimExpandedText: LocaleKeys.show_less.tr(),
-                    moreStyle: TextStyle(
+                    moreStyle: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                     ),
-                    lessStyle: TextStyle(
+                    lessStyle: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                     ),
@@ -95,7 +136,7 @@ class ProductDetailScreen extends StatelessWidget {
                             MaterialPageRoute(
                               builder:
                                   (context) => ProductReviewsScreen(
-                                    productModel: productModel,
+                                    productModel: widget.productModel,
                                   ),
                             ),
                           );

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../core/api/api_services.dart';
 import '../../../../../core/models/product_model.dart';
+import '../../../../../core/models/product_variants_model.dart';
 part 'cart_state.dart';
 
 class CartCubit extends Cubit<CartState> {
@@ -16,7 +17,7 @@ class CartCubit extends Cubit<CartState> {
     emit(CartLoading());
     try {
       final response = await _apiServices.getData(
-        'cart?for_user=eq.$userId&select=*,products(*),product_variants(color,size)',
+        'cart?for_user=eq.$userId&select=*,products(*),product_variants(*)',
       );
 
       if (response.data == null || response.data.isEmpty) {
@@ -24,11 +25,20 @@ class CartCubit extends Cubit<CartState> {
         return;
       }
 
-      final items = response.data.map<ProductModel>((item) {
-        final product = ProductModel.fromJson(item['products']);
-        product.quantity = item['quantity'];
-        return product;
-      }).toList();
+      final items =
+          response.data.map<ProductModel>((item) {
+            final product = ProductModel.fromJson(item['products']);
+            product.quantity = item['quantity'];
+
+            // **[NEW]** Attach the specific variant to the product model
+            if (item['product_variants'] != null) {
+              // Create a temporary list containing only the selected variant
+              product.variants = [
+                ProductVariantModel.fromJson(item['product_variants']),
+              ];
+            }
+            return product;
+          }).toList();
 
       emit(CartLoaded(items));
     } catch (e) {
@@ -37,26 +47,38 @@ class CartCubit extends Cubit<CartState> {
     }
   }
 
-  /// Add To Cart
-  Future<void> addToCart(ProductModel product) async {
+  /// **[UPDATED]** Add To Cart with a specific variant
+  Future<void> addToCart(
+    ProductModel product,
+    ProductVariantModel variant,
+  ) async {
     final currentState = state;
     if (currentState is CartLoaded) {
-      final existing = currentState.items.firstWhere(
-        (p) => p.productId == product.productId,
-        orElse: () => ProductModel(productId: '', quantity: 0),
+      // Check if the exact same variant already exists in the cart
+      final existingItemIndex = currentState.items.indexWhere(
+        (p) =>
+            p.productId == product.productId &&
+            p.variants.isNotEmpty &&
+            p.variants.first.variantId == variant.variantId,
       );
-      if (existing.productId != '') {
+
+      if (existingItemIndex != -1) {
+        // If it exists, just update the quantity
+        final existingItem = currentState.items[existingItemIndex];
         await _apiServices.patchData(
-          'cart?for_user=eq.$userId&for_product=eq.${product.productId}',
-          {'quantity': existing.quantity + 1},
+          'cart?for_user=eq.$userId&for_product_variant=eq.${variant.variantId}',
+          {'quantity': existingItem.quantity + 1},
         );
       } else {
+        // If not, add a new entry
         await _apiServices.postData('cart', {
           'for_user': userId,
           'for_product': product.productId,
+          'for_product_variant': variant.variantId,
           'quantity': 1,
         });
       }
+      // Reload the cart to reflect changes
       await loadCart();
     }
   }
@@ -69,11 +91,12 @@ class CartCubit extends Cubit<CartState> {
         'cart?for_user=eq.$userId&select=*,products(*)',
       );
 
-      final items = response.data.map<ProductModel>((item) {
-        final product = ProductModel.fromJson(item['products']);
-        product.quantity = item['quantity'];
-        return product;
-      }).toList();
+      final items =
+          response.data.map<ProductModel>((item) {
+            final product = ProductModel.fromJson(item['products']);
+            product.quantity = item['quantity'];
+            return product;
+          }).toList();
 
       for (var item in items) {
         await _apiServices.postData('purchase', {
@@ -103,7 +126,11 @@ class CartCubit extends Cubit<CartState> {
   void incrementQuantity(ProductModel product) {
     if (state is CartLoaded) {
       final items = List<ProductModel>.from((state as CartLoaded).items);
-      final index = items.indexWhere((p) => p.productId == product.productId);
+      final index = items.indexWhere(
+        (p) =>
+            p.productId == product.productId &&
+            p.variants.first.variantId == product.variants.first.variantId,
+      );
 
       if (index != -1) {
         final updatedProduct = items[index];
@@ -113,7 +140,7 @@ class CartCubit extends Cubit<CartState> {
         emit(CartLoaded(items));
 
         _apiServices.patchData(
-          'cart?for_user=eq.$userId&for_product=eq.${product.productId}',
+          'cart?for_user=eq.$userId&for_product_variant=eq.${updatedProduct.variants.first.variantId}',
           {'quantity': updatedProduct.quantity},
         );
       }
@@ -124,7 +151,11 @@ class CartCubit extends Cubit<CartState> {
   void decrementQuantity(ProductModel product) {
     if (state is CartLoaded) {
       final items = List<ProductModel>.from((state as CartLoaded).items);
-      final index = items.indexWhere((p) => p.productId == product.productId);
+      final index = items.indexWhere(
+        (p) =>
+            p.productId == product.productId &&
+            p.variants.first.variantId == product.variants.first.variantId,
+      );
 
       if (index != -1) {
         final updatedProduct = items[index];
@@ -135,7 +166,7 @@ class CartCubit extends Cubit<CartState> {
           emit(CartLoaded(items));
 
           _apiServices.patchData(
-            'cart?for_user=eq.$userId&for_product=eq.${product.productId}',
+            'cart?for_user=eq.$userId&for_product_variant=eq.${updatedProduct.variants.first.variantId}',
             {'quantity': updatedProduct.quantity},
           );
         } else {
@@ -149,12 +180,16 @@ class CartCubit extends Cubit<CartState> {
   void deleteItemFromCart(ProductModel product) {
     if (state is CartLoaded) {
       final items = List<ProductModel>.from((state as CartLoaded).items)
-        ..removeWhere((p) => p.productId == product.productId);
+        ..removeWhere(
+          (p) =>
+              p.productId == product.productId &&
+              p.variants.first.variantId == product.variants.first.variantId,
+        );
 
       emit(CartLoaded(items));
 
       _apiServices.deleteData(
-        'cart?for_user=eq.$userId&for_product=eq.${product.productId}',
+        'cart?for_user=eq.$userId&for_product_variant=eq.${product.variants.first.variantId}',
       );
     }
   }

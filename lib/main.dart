@@ -5,7 +5,7 @@ import 'package:nine_aki_bro_app/views/address/logic/cubit/address_cubit.dart';
 import 'package:nine_aki_bro_app/views/address/logic/repos/address_repo.dart';
 import 'package:nine_aki_bro_app/views/auth/logic/cubit/authentication_cubit.dart';
 import 'package:nine_aki_bro_app/views/cart/logic/cubit/cart_cubit/cart_cubit.dart';
-import 'package:nine_aki_bro_app/views/home/logic/home_cubit/home_cubit.dart';
+import 'package:nine_aki_bro_app/views/home/logic/cubit/home_cubit.dart';
 import 'package:nine_aki_bro_app/views/notifications/logic/cubit/notification_cubit/notification_cubit.dart';
 import 'package:nine_aki_bro_app/views/splash/splash_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -58,9 +58,9 @@ class NineAkiBro extends StatelessWidget {
         locale: context.locale,
         debugShowCheckedModeBanner: false,
         title: 'Nine Aki Bro',
-        //themeMode: ThemeMode.system,
+        themeMode: ThemeMode.system,
         theme: TAppTheme.getDarkTheme(context),
-        //darkTheme: TAppTheme.getDarkTheme(context),
+        darkTheme: TAppTheme.getDarkTheme(context),
         home: const SplashScreen(),
       ),
     );

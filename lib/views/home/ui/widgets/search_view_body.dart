@@ -8,7 +8,7 @@ import '../../../../core/widgets/layouts/grid_layout.dart';
 import '../../../../core/widgets/products/product_cards/product_card_vertical.dart';
 import '../../../../core/constants/sizes.dart';
 import '../../../../core/models/product_model.dart';
-import '../../logic/home_cubit/home_cubit.dart';
+import '../../logic/cubit/home_cubit.dart';
 
 class SearchViewBody extends StatefulWidget {
   const SearchViewBody({super.key});

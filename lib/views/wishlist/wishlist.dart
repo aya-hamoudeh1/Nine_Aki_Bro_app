@@ -10,7 +10,7 @@ import '../../core/widgets/icons/t_circular_icon.dart';
 import '../../core/widgets/layouts/grid_layout.dart';
 import '../../core/widgets/products/product_cards/product_card_vertical.dart';
 import '../../core/constants/sizes.dart';
-import '../home/logic/home_cubit/home_cubit.dart';
+import '../home/logic/cubit/home_cubit.dart';
 import '../nav_bar/ui/navigation_menu.dart';
 
 class FavoriteScreen extends StatelessWidget {

@@ -11,7 +11,7 @@ import '../../core/widgets/products/cart/cart_menu_icon.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/sizes.dart';
 import '../../core/helpers/helper_functions.dart';
-import '../home/logic/home_cubit/home_cubit.dart';
+import '../home/logic/cubit/home_cubit.dart';
 import '../home/ui/search_view.dart';
 
 class StoreScreen extends StatefulWidget {

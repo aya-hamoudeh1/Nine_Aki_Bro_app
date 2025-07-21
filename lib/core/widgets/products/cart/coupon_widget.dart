@@ -5,10 +5,7 @@ import '../../../helpers/helper_functions.dart';
 import '../../custom_shapes/containers/rounded_container.dart';
 
 class TCouponCode extends StatelessWidget {
-  const TCouponCode({
-    super.key,
-  });
-
+  const TCouponCode({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -42,13 +39,12 @@ class TCouponCode extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
-                foregroundColor: dark
-                    ? TColors.white.withOpacity(0.5)
-                    : TColors.dark.withOpacity(0.5),
-                backgroundColor: TColors.grey.withOpacity(0.2),
-                side: BorderSide(
-                  color: TColors.grey.withOpacity(0.1),
-                ),
+                foregroundColor:
+                    dark
+                        ? TColors.white.withAlpha(128)
+                        : TColors.dark.withAlpha(128),
+                backgroundColor: TColors.grey.withAlpha(26),
+                side: BorderSide(color: TColors.grey.withAlpha(26)),
               ),
               child: const Text('Apply'),
             ),

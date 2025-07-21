@@ -1,21 +1,81 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:nine_aki_bro_app/generated/local_keys.g.dart';
+import '../../../../core/constants/colors.dart';
+import '../../../../core/constants/sizes.dart';
+import '../../../../core/helpers/helper_functions.dart';
+import '../../../../core/models/product_model.dart';
+import '../../../../core/models/product_variants_model.dart';
 import '../../../../core/widgets/chips/choice_chip.dart';
 import '../../../../core/widgets/custom_shapes/containers/rounded_container.dart';
 import '../../../../core/widgets/texts/product_title_text.dart';
 import '../../../../core/widgets/texts/section_heading.dart';
 import '../../../../core/widgets/texts/t_product_price_text.dart';
-import '../../../../core/constants/colors.dart';
-import '../../../../core/constants/sizes.dart';
-import '../../../../core/helpers/helper_functions.dart';
 
-class TProductAttributes extends StatelessWidget {
-  const TProductAttributes({super.key});
+class TProductAttributes extends StatefulWidget {
+  const TProductAttributes({
+    super.key,
+    required this.product,
+    required this.onVariantSelected,
+  });
+
+  final ProductModel product;
+  final ValueChanged<ProductVariantModel> onVariantSelected;
+
+  @override
+  State<TProductAttributes> createState() => _TProductAttributesState();
+}
+
+class _TProductAttributesState extends State<TProductAttributes> {
+  ProductVariantModel? _selectedVariant;
+  String? _selectedColor;
+  String? _selectedSize;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.product.variants.isNotEmpty) {
+      _selectedVariant = widget.product.variants.first;
+      _selectedColor = _selectedVariant?.color;
+      _selectedSize = _selectedVariant?.size;
+    }
+  }
+
+  void _updateSelection() {
+    if (_selectedColor == null || _selectedSize == null) return;
+
+    final newVariant = widget.product.variants.firstWhere(
+      (v) => v.color == _selectedColor && v.size == _selectedSize,
+      orElse: () => _selectedVariant!, // Should not happen if logic is correct
+    );
+
+    setState(() {
+      _selectedVariant = newVariant;
+    });
+
+    // Notify the parent widget about the change
+    widget.onVariantSelected(_selectedVariant!);
+  }
 
   @override
   Widget build(BuildContext context) {
     final dark = THelperFunction.isDarkMode(context);
+    if (widget.product.variants.isEmpty) {
+      return const SizedBox.shrink(); // Don't show anything if no variants
+    }
+
+    // Get unique colors
+    final availableColors =
+        widget.product.variants.map((v) => v.color).toSet().toList();
+
+    // Get sizes available for the currently selected color
+    final availableSizes =
+        widget.product.variants
+            .where((v) => v.color == _selectedColor)
+            .map((v) => v.size)
+            .toSet()
+            .toList();
+
     return Column(
       children: [
         /// Selected Attributes Pricing & Description
@@ -24,7 +84,6 @@ class TProductAttributes extends StatelessWidget {
           backgroundColor: dark ? TColors.darkGrey : TColors.grey,
           child: Column(
             children: [
-              /// Title Price and Stock Status
               Row(
                 children: [
                   TSectionHeading(
@@ -38,34 +97,26 @@ class TProductAttributes extends StatelessWidget {
                       Row(
                         children: [
                           TProductTitleText(
-                            title: LocaleKeys.price.tr(),
+                            title: "${LocaleKeys.price.tr()}: ",
                             smallSize: true,
                           ),
-                          const SizedBox(width: TSizes.spaceBtwItems),
-
-                          /// Actual Price
-                          Text(
-                            '\$25',
-                            style: Theme.of(context).textTheme.titleSmall!
-                                .apply(decoration: TextDecoration.lineThrough),
+                          TProductPriceText(
+                            price:
+                                _selectedVariant?.price.toStringAsFixed(2) ??
+                                'N/A',
                           ),
-                          const SizedBox(width: TSizes.spaceBtwItems),
-
-                          /// Sale Price
-                          const TProductPriceText(price: '20'),
                         ],
                       ),
-
-                      /// Stock
                       Row(
                         children: [
                           TProductTitleText(
-                            title: LocaleKeys.stock.tr(),
+                            title: "${LocaleKeys.stock.tr()}: ",
                             smallSize: true,
                           ),
-                          const SizedBox(width: TSizes.spaceBtwItems),
                           Text(
-                            LocaleKeys.in_stock.tr(),
+                            (_selectedVariant?.stock ?? 0) > 0
+                                ? LocaleKeys.in_stock.tr()
+                                : "Out of Stock",
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ],
@@ -74,20 +125,12 @@ class TProductAttributes extends StatelessWidget {
                   ),
                 ],
               ),
-
-              /// Variation Description
-              const TProductTitleText(
-                title:
-                    "This is the Description of the Product and it can go up to max 4 lines",
-                smallSize: true,
-                maxLine: 4,
-              ),
             ],
           ),
         ),
         const SizedBox(height: TSizes.spaceBtwItems),
 
-        /// Attributes
+        /// -- Colors --
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -98,26 +141,35 @@ class TProductAttributes extends StatelessWidget {
             const SizedBox(height: TSizes.spaceBtwItems / 2),
             Wrap(
               spacing: 8,
-              children: [
-                TChoiceChip(
-                  text: 'Green',
-                  selected: true,
-                  onSelected: (value) {},
-                ),
-                TChoiceChip(
-                  text: 'Blue',
-                  selected: false,
-                  onSelected: (value) {},
-                ),
-                TChoiceChip(
-                  text: 'Yellow',
-                  selected: false,
-                  onSelected: (value) {},
-                ),
-              ],
+              children:
+                  availableColors.map((color) {
+                    return TChoiceChip(
+                      text: color,
+                      selected: _selectedColor == color,
+                      onSelected: (isSelected) {
+                        if (isSelected) {
+                          setState(() {
+                            _selectedColor = color;
+                            // When color changes, select the first available size for that color
+                            _selectedSize =
+                                widget.product.variants
+                                    .firstWhere(
+                                      (v) => v.color == _selectedColor,
+                                    )
+                                    .size;
+                          });
+                          _updateSelection();
+                        }
+                      },
+                    );
+                  }).toList(),
             ),
           ],
         ),
+
+        const SizedBox(height: TSizes.spaceBtwItems),
+
+        /// -- Sizes --
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -128,23 +180,21 @@ class TProductAttributes extends StatelessWidget {
             const SizedBox(height: TSizes.spaceBtwItems / 2),
             Wrap(
               spacing: 8,
-              children: [
-                TChoiceChip(
-                  text: 'EU 34',
-                  selected: true,
-                  onSelected: (value) {},
-                ),
-                TChoiceChip(
-                  text: 'EU 36',
-                  selected: false,
-                  onSelected: (value) {},
-                ),
-                TChoiceChip(
-                  text: 'EU 38',
-                  selected: false,
-                  onSelected: (value) {},
-                ),
-              ],
+              children:
+                  availableSizes.map((size) {
+                    return TChoiceChip(
+                      text: size,
+                      selected: _selectedSize == size,
+                      onSelected: (isSelected) {
+                        if (isSelected) {
+                          setState(() {
+                            _selectedSize = size;
+                          });
+                          _updateSelection();
+                        }
+                      },
+                    );
+                  }).toList(),
             ),
           ],
         ),

@@ -2,12 +2,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nine_aki_bro_app/generated/local_keys.g.dart';
-import 'package:nine_aki_bro_app/views/home/logic/home_cubit/home_cubit.dart';
-
 import '../../../core/widgets/layouts/grid_layout.dart';
 import '../../../core/widgets/loaders/loading_widget.dart';
 import '../../../core/widgets/products/product_cards/product_card_vertical.dart';
 import '../../../core/constants/sizes.dart';
+import '../../home/logic/cubit/home_cubit.dart';
 
 class TCategoryTab extends StatelessWidget {
   const TCategoryTab({super.key});

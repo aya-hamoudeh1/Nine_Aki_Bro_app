@@ -8,7 +8,7 @@ import '../../../../core/constants/sizes.dart';
 import '../../../../core/helpers/helper_functions.dart';
 import '../../../../core/models/purchase_model.dart';
 import '../../../../core/widgets/custom_shapes/containers/rounded_container.dart';
-import '../../../home/logic/home_cubit/home_cubit.dart';
+import '../../../home/logic/cubit/home_cubit.dart';
 
 class TOrderListItems extends StatelessWidget {
   const TOrderListItems({super.key});

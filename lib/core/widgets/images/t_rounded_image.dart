@@ -1,13 +1,13 @@
-import 'package:flutter/cupertino.dart';
-
+import 'package:flutter/material.dart';
+import '../../constants/colors.dart';
 import '../../constants/sizes.dart';
 
 class TRoundedImage extends StatelessWidget {
   const TRoundedImage({
     super.key,
-    this.width ,
+    this.width,
     this.height,
-    required this.imageUrl,
+    this.imageUrl,
     this.applyImageRadius = true,
     this.backgroundColor,
     this.fit = BoxFit.contain,
@@ -19,7 +19,7 @@ class TRoundedImage extends StatelessWidget {
   });
 
   final double? width, height;
-  final String imageUrl;
+  final String? imageUrl;
   final bool applyImageRadius;
   final Color? backgroundColor;
   final BoxFit? fit;
@@ -43,15 +43,28 @@ class TRoundedImage extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
         ),
         child: ClipRRect(
-          borderRadius: applyImageRadius
-              ? BorderRadius.circular(borderRadius)
-              : BorderRadius.zero,
-          child: Image(
-            image: isNetworkImage
-                ? NetworkImage(imageUrl)
-                : AssetImage(imageUrl) as ImageProvider,
-            fit: fit,
-          ),
+          borderRadius:
+              applyImageRadius
+                  ? BorderRadius.circular(borderRadius)
+                  : BorderRadius.zero,
+          child:
+              (imageUrl == null || imageUrl!.isEmpty)
+                  ? Center(
+                    child: Icon(Icons.image_not_supported, color: TColors.grey),
+                  ) // Show placeholder
+                  : Image(
+                    image:
+                        isNetworkImage
+                            ? NetworkImage(imageUrl!)
+                            : AssetImage(imageUrl!) as ImageProvider,
+                    fit: fit,
+                    // Add error builder for network images
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                        child: Icon(Icons.error_outline, color: TColors.grey),
+                      );
+                    },
+                  ),
         ),
       ),
     );

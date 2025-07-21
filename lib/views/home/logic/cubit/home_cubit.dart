@@ -28,16 +28,19 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> getProducts() async {
     emit(GetDataLoading());
     try {
+      var response = await _apiServices.getData(
+        'products?select=*,favorite(*),purchase(*),product_variants(*)',
+      );
+      List<ProductModel> newProducts = [];
+      for (var product in response.data) {
+        newProducts.add(ProductModel.fromJson(product));
+      }
       products.clear();
       searchResults.clear();
-      // categories.clear();
-      // favoriteProductList.clear();
-      var response = await _apiServices.getData(
-        'products?select=*,favorite(*),purchase(*)',
-      );
-      for (var product in response.data) {
-        products.add(ProductModel.fromJson(product));
-      }
+      userOrders.clear();
+
+      products = newProducts;
+
       await getCategories();
       getFavoriteProduct();
       getUserOrders();
@@ -107,17 +110,18 @@ class HomeCubit extends Cubit<HomeState> {
   /// Add To Favorite
   Map<String, bool> favoriteProduct = {};
   Future<void> addToFavorite(String productId) async {
-    emit(AddToFavoriteLoading());
     try {
       await _apiServices.postData('favorite', {
         'is_favorite': true,
         'for_user': userId,
         'for_product': productId,
       });
-      favoriteProduct.addAll({productId: true});
-      final product = products.firstWhere((p) => p.productId == productId);
-      favoriteProductList.add(product);
-      emit(AddToFavoriteSuccess());
+      favoriteProduct[productId] = true;
+      if (!favoriteProductList.any((p) => p.productId == productId)) {
+        final product = products.firstWhere((p) => p.productId == productId);
+        favoriteProductList.add(product);
+      }
+      emit(GetDataSuccess(products: products, categories: categories));
     } catch (e) {
       log(e.toString());
       emit(AddToFavoriteError());
@@ -130,16 +134,15 @@ class HomeCubit extends Cubit<HomeState> {
 
   /// Remove From Favorite
   Future<void> removeFromFavorite(String productId) async {
-    emit(RemoveFavoriteLoading());
     try {
       await _apiServices.deleteData(
         'favorite?for_user=eq.$userId&for_product=eq.$productId',
       );
-      favoriteProduct.removeWhere((key, value) => key == productId);
+      favoriteProduct.remove(productId);
       favoriteProductList.removeWhere(
         (product) => product.productId == productId,
       );
-      emit(RemoveFavoriteSuccess());
+      emit(GetDataSuccess(products: products, categories: categories));
     } catch (e) {
       log(e.toString());
       emit(RemoveFavoriteError());
@@ -149,6 +152,8 @@ class HomeCubit extends Cubit<HomeState> {
   /// Get Favorite Product
   List<ProductModel> favoriteProductList = [];
   void getFavoriteProduct() {
+    favoriteProductList.clear();
+    favoriteProduct.clear();
     for (ProductModel product in products) {
       if (product.favoriteProduct != null &&
           product.favoriteProduct!.isNotEmpty) {

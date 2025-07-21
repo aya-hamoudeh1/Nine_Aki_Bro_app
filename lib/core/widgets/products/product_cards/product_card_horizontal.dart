@@ -36,12 +36,13 @@ class TProductCardHorizontal extends StatelessWidget {
             child: Stack(
               children: [
                 /// Thumbnail Image
-                const SizedBox(
+                SizedBox(
                   height: 120,
                   width: 120,
                   child: TRoundedImage(
-                    imageUrl: 'assets/images/shoes.png',
+                    imageUrl: productModel.imageUrl ?? '',
                     applyImageRadius: true,
+                    isNetworkImage: true,
                   ),
                 ),
 
@@ -50,15 +51,16 @@ class TProductCardHorizontal extends StatelessWidget {
                   top: 12,
                   child: TRoundedContainer(
                     radius: TSizes.sm,
-                    backgroundColor: TColors.secondary.withOpacity(0.8),
+                    backgroundColor: TColors.secondary.withAlpha(204),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: TSizes.sm, vertical: TSizes.xs),
+                      horizontal: TSizes.sm,
+                      vertical: TSizes.xs,
+                    ),
                     child: Text(
                       '25%',
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelLarge!
-                          .apply(color: TColors.black),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelLarge!.apply(color: TColors.black),
                     ),
                   ),
                 ),
@@ -108,16 +110,18 @@ class TProductCardHorizontal extends StatelessWidget {
                           color: TColors.dark,
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(TSizes.cardRadiusMd),
-                            bottomRight:
-                                Radius.circular(TSizes.productImageRadius),
+                            bottomRight: Radius.circular(
+                              TSizes.productImageRadius,
+                            ),
                           ),
                         ),
                         child: const SizedBox(
-                            width: TSizes.iconLg * 1.2,
-                            height: TSizes.iconLg * 1.2,
-                            child: Center(
-                                child:
-                                    Icon(Iconsax.add, color: TColors.white))),
+                          width: TSizes.iconLg * 1.2,
+                          height: TSizes.iconLg * 1.2,
+                          child: Center(
+                            child: Icon(Iconsax.add, color: TColors.white),
+                          ),
+                        ),
                       ),
                     ],
                   ),

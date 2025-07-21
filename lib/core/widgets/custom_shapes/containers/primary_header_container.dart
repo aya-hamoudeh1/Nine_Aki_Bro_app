@@ -4,10 +4,7 @@ import '../curved_edges/curved_edge_widget.dart';
 import 'circular_container.dart';
 
 class TPrimaryHeaderContainer extends StatelessWidget {
-  const TPrimaryHeaderContainer({
-    super.key,
-    required this.child,
-  });
+  const TPrimaryHeaderContainer({super.key, required this.child});
 
   final Widget child;
 
@@ -24,26 +21,16 @@ class TPrimaryHeaderContainer extends StatelessWidget {
               top: -150,
               right: -250,
               child: TCircularContainer(
-                backgroundColor: TColors.textWhite.withOpacity(0.1),
+                backgroundColor: TColors.textWhite.withAlpha(26),
               ),
             ),
             Positioned(
               top: 100,
               right: -300,
               child: TCircularContainer(
-                backgroundColor: TColors.textWhite.withOpacity(0.1),
+                backgroundColor: TColors.textWhite.withAlpha(26),
               ),
             ),
-            // const Positioned(
-            //   top: 50,
-            //   left: 20,
-            //   right: 20,
-            //   child: THomeAppBar(),
-            // ),
-            // Positioned.fill(
-            //   top: 100,
-            //   child: child,
-            // ),
             child,
           ],
         ),

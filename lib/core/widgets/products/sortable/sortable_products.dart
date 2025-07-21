@@ -5,8 +5,8 @@ import 'package:iconsax/iconsax.dart';
 import 'package:nine_aki_bro_app/core/models/product_model.dart';
 import 'package:nine_aki_bro_app/core/widgets/loaders/loading_widget.dart';
 import 'package:nine_aki_bro_app/generated/local_keys.g.dart';
-import 'package:nine_aki_bro_app/views/home/logic/home_cubit/home_cubit.dart';
 import '../../../../views/cart/logic/cubit/cart_cubit/cart_cubit.dart';
+import '../../../../views/home/logic/cubit/home_cubit.dart';
 import '../../../constants/sizes.dart';
 import '../../layouts/grid_layout.dart';
 import '../product_cards/product_card_vertical.dart';
@@ -49,31 +49,27 @@ class _TSortableProductsState extends State<TSortableProducts> {
 
           final List<ProductModel> displayProducts = List.from(state.products);
 
-          switch (_selectedSortOption) {
-            case 'Name':
-              displayProducts.sort(
-                (a, b) => (a.productName ?? '').compareTo(b.productName ?? ''),
-              );
-              break;
-            case 'Higher Price':
-              displayProducts.sort((a, b) {
-                final priceA = double.tryParse(a.price ?? '0') ?? 0.0;
-                final priceB = double.tryParse(b.price ?? '0') ?? 0.0;
+          // Sorting logic based on variants if they exist
+          displayProducts.sort((a, b) {
+            final priceA =
+                a.variants.isNotEmpty
+                    ? a.variants.first.price
+                    : double.tryParse(a.price ?? '0') ?? 0.0;
+            final priceB =
+                b.variants.isNotEmpty
+                    ? b.variants.first.price
+                    : double.tryParse(b.price ?? '0') ?? 0.0;
+
+            switch (_selectedSortOption) {
+              case 'Higher Price':
                 return priceB.compareTo(priceA);
-              });
-              break;
-            case 'Lower Price':
-              displayProducts.sort((a, b) {
-                final priceA = double.tryParse(a.price ?? '0') ?? 0.0;
-                final priceB = double.tryParse(b.price ?? '0') ?? 0.0;
+              case 'Lower Price':
                 return priceA.compareTo(priceB);
-              });
-              break;
-            default:
-              displayProducts.sort(
-                (a, b) => (a.productName ?? '').compareTo(b.productName ?? ''),
-              );
-          }
+              case 'Name':
+              default:
+                return (a.productName ?? '').compareTo(b.productName ?? '');
+            }
+          });
 
           return Column(
             children: [
@@ -115,7 +111,25 @@ class _TSortableProductsState extends State<TSortableProducts> {
                       }
                     },
                     onAddToCart: () {
-                      context.read<CartCubit>().addToCart(product);
+                      // --- **[THE FIX IS HERE]** ---
+                      if (product.variants.isNotEmpty) {
+                        context.read<CartCubit>().addToCart(
+                          product,
+                          product.variants.first,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(LocaleKeys.item_added_to_cart.tr()),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Product has no options to add."),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      }
                     },
                   );
                 },
